@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,21 +12,341 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .hidden {
+            display: none;
+        }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.16.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.542.0"
-  }
-}
-</script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div class="flex justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700"><path d="M16 18a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2Z"></path><path d="M6 18a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6Z"></path><path d="M12 18V6"></path></svg>
+            </div>
+
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">VCF Contact Generator</h1>
+            <p class="text-center text-gray-600 mb-8">
+                Füllen Sie die Felder aus, nutzen Sie die Beispieldaten oder fügen Sie eine E-Mail-Signatur ein, um eine VCF-Datei zu erstellen.
+            </p>
+
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <label for="signatureInput" class="block text-sm font-medium text-gray-700 mb-2">
+                    E-Mail-Signatur hier einfügen:
+                </label>
+                <textarea 
+                    id="signatureInput" 
+                    rows="6"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Kopieren Sie eine E-Mail-Signatur hier hinein."
+                    aria-label="E-Mail-Signatur Eingabefeld"
+                ></textarea>
+                <button
+                    id="parseButton"
+                    class="mt-2 w-full bg-purple-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center disabled:bg-purple-400 disabled:cursor-not-allowed disabled:scale-100"
+                >
+                    <div id="spinner" class="hidden h-5 w-5 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+                    <svg id="parseButtonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M15 4V2"/><path d="M15 4h-2"/><path d="m15 10-3.4 3.4"/><path d="M9 4v2"/><path d="M9 4H7"/><path d="m9 10 3.4 3.4"/><path d="M3 14h2"/><path d="M3 14v2"/><path d="m9.4 15-3.4 3.4"/><path d="M21 14h-2"/><path d="M21 14v2"/><path d="m14.6 15 3.4 3.4"/><path d="M18 7.5a1.5 1.5 0 0 0 1.5-1.5 1.5 1.5 0 0 0-1.5-1.5 1.5 1.5 0 0 0-1.5 1.5 1.5 1.5 0 0 0 1.5 1.5Z"/><path d="M6 7.5a1.5 1.5 0 0 0 1.5-1.5A1.5 1.5 0 0 0 6 4.5 1.5 1.5 0 0 0 4.5 6 1.5 1.5 0 0 0 6 7.5Z"/><path d="M12 20a1.5 1.5 0 0 0 1.5-1.5 1.5 1.5 0 0 0-1.5-1.5 1.5 1.5 0 0 0-1.5 1.5 1.5 1.5 0 0 0 1.5 1.5Z"/></svg>
+                    <span id="parseButtonText">Smart Parse (Gemini)</span>
+                </button>
+            </div>
+
+            <form id="contactForm" class="space-y-4">
+                <div><label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Vollständiger Name</label><input type="text" id="fullName" name="fullName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">Vorname</label><input type="text" id="firstName" name="firstName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Nachname</label><input type="text" id="lastName" name="lastName" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">Titel / Präfix (z.B. Dr.)</label><input type="text" id="prefix" name="prefix" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="organization" class="block text-sm font-medium text-gray-700 mb-1">Organisation</label><input type="text" id="organization" name="organization" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="title" class="block text-sm font-medium text-gray-700 mb-1">Position</label><input type="text" id="title" name="title" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="address" class="block text-sm font-medium text-gray-700 mb-1">Adresse (Straße, Stadt, PLZ)</label><input type="text" id="address" name="address" placeholder="Straße, Stadt, PLZ" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="workPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefon (Arbeit)</label><input type="tel" id="workPhone" name="workPhone" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="mobilePhone" class="block text-sm font-medium text-gray-700 mb-1">Mobiltelefon</label><input type="tel" id="mobilePhone" name="mobilePhone" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-Mail</label><input type="email" id="email" name="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+                <div><label for="website" class="block text-sm font-medium text-gray-700 mb-1">Webseite</label><input type="url" id="website" name="website" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></div>
+            </form>
+
+            <div id="messageBox" class="min-h-[60px]" aria-live="polite"></div>
+            
+            <div class="mt-8 flex flex-col space-y-3">
+                <button
+                    id="generateButton"
+                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center disabled:bg-blue-400 disabled:cursor-not-allowed disabled:scale-100"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    VCF-Datei herunterladen
+                </button>
+                <button
+                    id="resetButton"
+                    type="button"
+                    class="w-full bg-gray-400 text-white py-3 px-4 rounded-lg shadow-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center disabled:bg-gray-300 disabled:cursor-not-allowed disabled:scale-100"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Alle Felder zurücksetzen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenAI, Type } from "https://aistudiocdn.com/@google/genai@^1.16.0";
+
+        // --- KONSTANTEN ---
+        const EMPTY_CONTACT_DATA = {
+            fullName: '', firstName: '', lastName: '', prefix: '', organization: '',
+            title: '', address: '', workPhone: '', mobilePhone: '', email: '', website: '',
+        };
+        
+        const ALL_FIELDS = Object.keys(EMPTY_CONTACT_DATA);
+
+        // --- DOM-ELEMENTE ---
+        const signatureInput = document.getElementById('signatureInput');
+        const parseButton = document.getElementById('parseButton');
+        const generateButton = document.getElementById('generateButton');
+        const resetButton = document.getElementById('resetButton');
+        const messageBox = document.getElementById('messageBox');
+        const spinner = document.getElementById('spinner');
+        const parseButtonText = document.getElementById('parseButtonText');
+        const parseButtonIcon = document.getElementById('parseButtonIcon');
+        const contactForm = document.getElementById('contactForm');
+
+        // --- STATUS ---
+        let messageTimeout;
+
+        // --- FUNKTIONEN ---
+
+        // Zeigt eine Nachricht für 5 Sekunden an
+        const showMessage = (text, type) => {
+            clearTimeout(messageTimeout);
+            const container = document.createElement('div');
+            const baseClasses = 'mt-4 p-3 text-sm rounded-lg text-center transition-opacity duration-300';
+            const typeClasses = {
+                info: 'bg-blue-100 text-blue-800',
+                success: 'bg-green-100 text-green-800',
+                error: 'bg-red-100 text-red-800',
+            };
+            container.className = `${baseClasses} ${typeClasses[type]} opacity-0`;
+            container.textContent = text;
+            container.setAttribute('role', 'alert');
+            
+            messageBox.innerHTML = '';
+            messageBox.appendChild(container);
+            
+            // Fade in
+            setTimeout(() => container.classList.remove('opacity-0'), 10);
+
+            messageTimeout = setTimeout(() => {
+                container.classList.add('opacity-0');
+                container.addEventListener('transitionend', () => {
+                    if (messageBox.contains(container)) {
+                        messageBox.innerHTML = '';
+                    }
+                }, { once: true });
+            }, 5000);
+        };
+        
+        // Aktualisiert den Ladezustand der UI
+        const setLoading = (isLoading) => {
+            parseButton.disabled = isLoading;
+            generateButton.disabled = isLoading;
+            resetButton.disabled = isLoading;
+            signatureInput.disabled = isLoading;
+
+            spinner.classList.toggle('hidden', !isLoading);
+            parseButtonIcon.classList.toggle('hidden', isLoading);
+            parseButtonText.textContent = isLoading ? 'Analysiere...' : 'Smart Parse (Gemini)';
+            if(isLoading) {
+                 parseButtonText.classList.add('ml-2');
+            } else {
+                 parseButtonText.classList.remove('ml-2');
+            }
+        };
+
+        // Aktualisiert die Formularfelder mit den übergebenen Daten
+        const updateForm = (data) => {
+            ALL_FIELDS.forEach(field => {
+                const inputElement = document.getElementById(field);
+                if (inputElement) {
+                    inputElement.value = data[field] || '';
+                }
+            });
+        };
+        
+        // Liest die aktuellen Werte aus dem Formular
+        const getFormData = () => {
+            const data = {};
+            ALL_FIELDS.forEach(field => {
+                const inputElement = document.getElementById(field);
+                if (inputElement) {
+                    data[field] = inputElement.value.trim();
+                }
+            });
+            return data;
+        };
+
+        // --- VCF-GENERATOR ---
+        const generateAndDownloadVcf = (contact) => {
+            try {
+                const {
+                    fullName, firstName, lastName, prefix, organization, title,
+                    address, workPhone, mobilePhone, email, website
+                } = contact;
+
+                if (!fullName || !firstName || !lastName) {
+                    showMessage('Vollständiger Name, Vorname und Nachname sind erforderlich.', 'error');
+                    return;
+                }
+
+                let street = '', city = '', postalCode = '';
+                const addressParts = (address || '').split(',').map(part => part.trim());
+                if (addressParts.length >= 3) {
+                    street = addressParts[0];
+                    city = addressParts[1];
+                    postalCode = addressParts[2];
+                } else if (addressParts.length === 2) {
+                    street = addressParts[0];
+                    city = addressParts[1];
+                } else if (addressParts.length === 1 && addressParts[0] !== '') {
+                    street = addressParts[0];
+                }
+
+                let vcfContent = `BEGIN:VCARD\nVERSION:3.0\n`;
+                vcfContent += `FN:${fullName}\n`;
+                vcfContent += `N:${lastName};${firstName};${prefix};;\n`;
+                if (organization) vcfContent += `ORG:${organization}\n`;
+                if (title) vcfContent += `TITLE:${title}\n`;
+                if (street || city || postalCode) vcfContent += `ADR;TYPE=WORK:;;${street};${city};;${postalCode};\n`;
+                if (workPhone) vcfContent += `TEL;TYPE=WORK,VOICE:${workPhone}\n`;
+                if (mobilePhone) vcfContent += `TEL;TYPE=CELL,VOICE:${mobilePhone}\n`;
+                if (email) vcfContent += `EMAIL;TYPE=INTERNET:${email}\n`;
+                if (website) vcfContent += `URL:${website}\n`;
+                vcfContent += `END:VCARD\n`;
+
+                const blob = new Blob([vcfContent], { type: 'text/vcard;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${(firstName || 'kontakt').toLowerCase()}_${(lastName || 'generiert').toLowerCase()}.vcf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('VCF-Datei erfolgreich generiert und heruntergeladen!', 'success');
+            } catch (error) {
+                console.error('Fehler bei der VCF-Generierung:', error);
+                showMessage('Ein unerwarteter Fehler ist beim Erstellen der Datei aufgetreten.', 'error');
+            }
+        };
+        
+        // --- GEMINI-SERVICE ---
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const responseSchema = {
+            type: Type.OBJECT,
+            properties: {
+                "fullName": { "type": Type.STRING, description: "Der vollständige Name der Person (z.B. 'Dr. Max Mustermann')." },
+                "firstName": { "type": Type.STRING, description: "Der Vorname." },
+                "lastName": { "type": Type.STRING, description: "Der Nachname." },
+                "prefix": { "type": Type.STRING, description: "Titel oder Präfixe (z.B. 'Dr.', 'Mr.')." },
+                "organization": { "type": Type.STRING, description: "Der Name des Unternehmens oder der Organisation." },
+                "title": { "type": Type.STRING, description: "Die Berufsbezeichnung oder Position." },
+                "address": { "type": Type.STRING, description: "Die vollständige Geschäftsadresse als einzelner String (z.B. 'Straße, Stadt, Postleitzahl')." },
+                "workPhone": { "type": Type.STRING, description: "Die primäre geschäftliche Telefonnummer." },
+                "mobilePhone": { "type": Type.STRING, description: "Die Mobiltelefonnummer." },
+                "email": { "type": Type.STRING, description: "Die E-Mail-Adresse." },
+                "website": { "type": Type.STRING, description: "Die URL der Unternehmens- oder persönlichen Webseite." }
+            },
+            required: ["fullName", "firstName", "lastName", "email"]
+        };
+
+        const parseSignatureWithGemini = async (signatureText) => {
+            try {
+                const prompt = `Extrahiere Kontaktdaten aus der folgenden E-Mail-Signatur. Gib die Daten als JSON-Objekt zurück, das dem bereitgestellten Schema entspricht. Wenn ein Feld nicht gefunden wird, lasse den Wert als leeren String. Sei präzise.
+
+E-Mail-Signatur:
+\`\`\`
+${signatureText}
+\`\`\``;
+
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    contents: [{ parts: [{ text: prompt }] }],
+                    config: {
+                        responseMimeType: "application/json",
+                        responseSchema: responseSchema,
+                    },
+                });
+
+                const jsonString = response.text.trim();
+                const extractedData = JSON.parse(jsonString);
+
+                const fullContactData = { ...EMPTY_CONTACT_DATA };
+                for (const key in extractedData) {
+                    if (fullContactData.hasOwnProperty(key)) {
+                        fullContactData[key] = extractedData[key] || '';
+                    }
+                }
+                return fullContactData;
+            } catch (error) {
+                console.error("Fehler beim Aufruf der Gemini API:", error);
+                throw new Error("Signatur konnte nicht mit AI verarbeitet werden. Details in der Konsole.");
+            }
+        };
+
+        // --- EVENT HANDLER ---
+        
+        const handleParseSignature = async () => {
+            const signature = signatureInput.value.trim();
+            if (!signature) {
+                showMessage('Bitte fügen Sie eine Signatur in das Textfeld ein.', 'error');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const data = await parseSignatureWithGemini(signature);
+                updateForm(data);
+                showMessage('Signatur erfolgreich analysiert! Bitte überprüfen Sie die Felder.', 'success');
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten.';
+                showMessage(errorMessage, 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleGenerate = () => {
+            const currentContactData = getFormData();
+            generateAndDownloadVcf(currentContactData);
+        };
+        
+        const handleReset = () => {
+            signatureInput.value = '';
+            contactForm.reset();
+            showMessage('Alle Felder wurden zurückgesetzt.', 'info');
+        };
+
+        // --- INITIALISIERUNG ---
+        document.addEventListener('DOMContentLoaded', () => {
+            parseButton.addEventListener('click', handleParseSignature);
+            generateButton.addEventListener('click', handleGenerate);
+            resetButton.addEventListener('click', handleReset);
+            
+            // Formular mit initialen Beispieldaten füllen, wenn es leer ist
+            if (!Object.values(getFormData()).some(val => val !== '')) {
+                updateForm({
+                    fullName: 'Dr. Max Mustermann',
+                    firstName: 'Max',
+                    lastName: 'Mustermann',
+                    prefix: 'Dr.',
+                    organization: 'Musterfirma GmbH',
+                    title: 'Muster-Position',
+                    address: 'Musterstr. 1, Musterstadt, 12345',
+                    workPhone: '+49123456789',
+                    mobilePhone: '+4917698765432',
+                    email: 'max.mustermann@musterfirma.de',
+                    website: 'https://www.musterfirma.de',
+                });
+            }
+        });
+
+    </script>
 </body>
 </html>
