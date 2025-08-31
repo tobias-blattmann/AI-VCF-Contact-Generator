@@ -1,0 +1,5 @@
+{
+  "name": "AI VCF Contact Generator",
+  "description": "Generate VCF (vCard) files from contact details. Use the Gemini API to automatically parse contact information from email signatures.",
+  "requestFramePermissions": []
+}
